@@ -1,16 +1,61 @@
 import sys
 
+import pandas as pd
+from sqlalchemy import create_engine
+
 
 def load_data(messages_filepath, categories_filepath):
-    pass
+    """
+    Loads the data from the csv files and returns a DataFrame with all the data.
+    :param messages_filepath: string with the route of the messages csv
+    :param categories_filepath: string with the route of the categories csv
+    :return: DataFrame with information of messages and categories
+    """
+    messages = pd.read_csv(messages_filepath)
+    categories = pd.read_csv(categories_filepath)
+    df = messages.merge(categories, how='inner', on='id')
+
+    return df
 
 
 def clean_data(df):
-    pass
+    """
+    Clean the data input processing some columns and removing duplicates.
+    :param df: DataFrame with all the data
+    :return: DataFrame with clean data
+    """
+    # Generate a DataFrame with all categories
+    categories = df['categories'].str.split(';', expand=True)
+    row = categories.iloc[0]
+    category_colnames = row.apply(lambda x: x.split('-')[0])
+    categories.columns = category_colnames
+
+    # Convert category values to just numbers 0 or 1
+    for column in categories:
+        categories[column] = categories[column].apply(lambda x: x.split('-')[1])
+        categories[column] = categories[column].astype(int)
+
+    # Replace categories column in df with new category columns
+    df.drop('categories', axis=1, inplace=True)
+
+    # Concatenate the original dataframe with the new `categories` dataframe
+    df = pd.concat([df, categories], axis=1)
+
+    # Remove duplicates
+    df.drop_duplicates(inplace=True)
+
+    return df
 
 
 def save_data(df, database_filename):
-    pass  
+    """
+    Save DataFrame into a sqlite DataBase.
+    :param df: DataFrame with clean data.
+    :param database_filename: String with route to save the db file.
+    :return: None
+    """
+    engine = create_engine(f'sqlite:///{database_filename}')
+    df.to_sql('messages', engine, index=False)
 
 
 def main():
