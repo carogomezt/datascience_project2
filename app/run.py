@@ -1,36 +1,43 @@
 import json
-import plotly
+import re
+
+import joblib
 import pandas as pd
-
-from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import word_tokenize
-
+import plotly
 from flask import Flask
-from flask import render_template, request, jsonify
-from plotly.graph_objs import Bar
-from sklearn.externals import joblib
+from flask import render_template, request
+from nltk.corpus import stopwords
+from nltk.stem.wordnet import WordNetLemmatizer
+from nltk.tokenize import word_tokenize
+from plotly.graph_objs import Bar, Scatter
 from sqlalchemy import create_engine
-
 
 app = Flask(__name__)
 
+
 def tokenize(text):
+    """
+    Tokenize the text input removing stopwords and lemmatizing the text.
+    :param text: String with the text data.
+    :return: List with all the tokens.
+    """
+    # normalize case and remove punctuation
+    text = re.sub(r'[^a-zA-Z0-9]', ' ', text.lower())
+    # tokenize text
     tokens = word_tokenize(text)
+
+    stop_words = stopwords.words("english")
     lemmatizer = WordNetLemmatizer()
-
-    clean_tokens = []
-    for tok in tokens:
-        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
-        clean_tokens.append(clean_tok)
-
-    return clean_tokens
+    # lemmatize and remove stop words
+    tokens = [lemmatizer.lemmatize(word) for word in tokens if word not in stop_words]
+    return tokens
 
 # load data
-engine = create_engine('sqlite:///../data/YourDatabaseName.db')
-df = pd.read_sql_table('YourTableName', engine)
+engine = create_engine('sqlite:///../data/DisasterResponse.db')
+df = pd.read_sql_table('messages', engine)
 
 # load model
-model = joblib.load("../models/your_model_name.pkl")
+model = joblib.load("../models/classifier.pkl")
 
 
 # index webpage displays cool visuals and receives user input text for model
@@ -39,12 +46,18 @@ model = joblib.load("../models/your_model_name.pkl")
 def index():
     
     # extract data needed for visuals
-    # TODO: Below is an example - modify to extract data for your own visuals
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
+
+    categories = df.drop(['id', 'message', 'original', 'genre'], axis=1)
+    categories_names = categories.columns
+    categories_counts = categories.sum().values
+
+    message_words = list(df.iloc[:1000]['message'].str.split().str.len())
+    original_words = list(df.iloc[:1000]['original'].str.split().str.len())
+    message_names = list(df['id'])
     
     # create visuals
-    # TODO: Below is an example - modify to create your own visuals
     graphs = [
         {
             'data': [
@@ -61,6 +74,48 @@ def index():
                 },
                 'xaxis': {
                     'title': "Genre"
+                }
+            }
+        },
+        {
+            'data': [
+                Scatter(
+                    x=categories_names,
+                    y=categories_counts
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of Message Categories',
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+                    'title': "Category"
+                }
+            }
+        },
+        {
+            'data': [
+                Scatter(
+                    x=message_names,
+                    y=message_words,
+                    name='Message Column'
+                ),
+                Scatter(
+                    x=message_names,
+                    y=original_words,
+                    name="Original Column"
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of Messages Words',
+                'yaxis': {
+                    'title': "Words"
+                },
+                'xaxis': {
+                    'title': "Message ID"
                 }
             }
         }
