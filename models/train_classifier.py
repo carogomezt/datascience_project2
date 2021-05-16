@@ -73,7 +73,7 @@ def build_model(optimize=False):
             'clf__estimator__bootstrap': [True, False],
         }
 
-        pipeline = GridSearchCV(pipeline, param_grid=parameters, cv=3)
+        pipeline = GridSearchCV(pipeline, param_grid=parameters, cv=3, verbose=3)
 
     return pipeline
 

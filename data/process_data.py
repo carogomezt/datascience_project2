@@ -32,7 +32,7 @@ def clean_data(df):
 
     # Convert category values to just numbers 0 or 1
     for column in categories:
-        categories[column] = categories[column].apply(lambda x: x.split('-')[1])
+        categories[column] = categories[column].apply(lambda x: 0 if int(x.split('-')[1]) == 0 else 1)
         categories[column] = categories[column].astype(int)
 
     # Replace categories column in df with new category columns
@@ -55,7 +55,7 @@ def save_data(df, database_filename):
     :return: None
     """
     engine = create_engine(f'sqlite:///{database_filename}')
-    df.to_sql('messages', engine, index=False)
+    df.to_sql('messages', engine, index=False, if_exists='replace')
 
 
 def main():

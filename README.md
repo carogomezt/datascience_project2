@@ -23,6 +23,7 @@ $ pip install -r requirements.txt
 ## Project Motivation <a name="motivation"></a>
 For this project was used data from [Figure Eight](https://www.figure-eight.com/) to build a model for an API that classifies disaster messages.
 With this information I was able to put into practice ETL skills, and the creation of ML Pipelines. 
+This application will help people and organizations during and event of disaster because they could categorize the messages sent by the people and could make a mitigation plan faster.
 
 ## File Descriptions<a name="files"></a>
 
@@ -33,6 +34,28 @@ With this information I was able to put into practice ETL skills, and the creati
 4. [models](https://github.com/carogomezt/datascience_project2/tree/main/models): Folder with the file to make, train and evaluate the model.
 5. [README.md](https://github.com/carogomezt/datascience_project2/blob/main/README.md): File with repository information.
 6. [requirements.txt](https://github.com/carogomezt/datascience_project2/blob/main/requirements.txt): File with requirements of the project.
+### File structure
+```
+- app
+| - template
+| |- master.html # main page of web app
+| |- go.html # classification result page of web app
+|- run.py # Flask file that runs app
+- data
+|- disaster_categories.csv # data to process
+|- disaster_messages.csv # data to process
+|- process_data.py
+|- InsertDatabaseName.db # database to save clean data to
+- data_analysis
+|- ETL Pipeline Preparation.ipynb # first processing of the data
+|- ML Pipeline Preparation.ipynb # # exploration of models
+- img
+|- models_accuracy.png
+- models
+|- train_classifier.py
+|- classifier.pkl # saved model
+README.md
+```
 
 ## Instructions<a name="instructions"></a>
 1. Run the following commands in the project's root directory to set up your database and model.
